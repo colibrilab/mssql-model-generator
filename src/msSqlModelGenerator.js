@@ -203,7 +203,6 @@ class MsSqlModelGenerator {
             return freeName;
         }
 
-
         // prepare extModel, names and extConfig
         for (const table of extModel) {
             table.entity = table.name;
@@ -265,11 +264,11 @@ class MsSqlModelGenerator {
                         colType: colType,
                         joinColumns: {
                             name: c0.name,
-                            referencedColumnName: c0.manyToOne.column,
+                            referencedColumnName: getNewColumnName(refTable.entity, c0.manyToOne.column),
                         },
                         inverseJoinColumns: {
                             name: c1.name,
-                            referencedColumnName: c1.manyToOne.column,
+                            referencedColumnName: getNewColumnName(table.entity, c1.manyToOne.column),
                         }
                     });
                 };
@@ -330,8 +329,6 @@ class MsSqlModelGenerator {
                         otm.name = ref_name;
                         otm.ref_name = name;
                     }
-
-
                 }
             }
         }
@@ -394,7 +391,7 @@ class MsSqlModelGenerator {
                             if (names[column.manyToOne.table]) {
                                 let mto = column.manyToOne;
                                 codeProps += `\n  @ManyToOne(type => ${mto.table}, ${mto.table} => ${mto.table}.${mto.ref_name})`;
-                                codeProps += `\n  @JoinColumn({name: '${column.name}'})`;
+                                codeProps += `\n  @JoinColumn({name: '${getNewColumnName(table.entity, column.name)}'})`;
                                 codeProps += `\n  ${mto.name}: ${mto.table};`;
                                 codeProps += '\n';
                                 importOrmClasses.ManyToOne = true;
@@ -418,8 +415,8 @@ class MsSqlModelGenerator {
                     codeProps += `\n  @ManyToMany(type => ${mtm.colType})`;
                     codeProps += `\n  @JoinTable({`;
                     codeProps += `\n    name: '${mtm.name}',`;
-                    codeProps += `\n    joinColumns: [{name: '${mtm.joinColumns.name}', referencedColumnName: '${mtm.joinColumns.referencedColumnName}'}],`;
-                    codeProps += `\n    inverseJoinColumns: [{name: '${mtm.inverseJoinColumns.name}', referencedColumnName: '${mtm.inverseJoinColumns.referencedColumnName}'}],`;
+                    codeProps += `\n    joinColumns: [{name: '${mtm.joinColumns.name}', referencedColumnName: '${getNewColumnName(mtm.name, mtm.joinColumns.referencedColumnName)}'}],`;
+                    codeProps += `\n    inverseJoinColumns: [{name: '${mtm.inverseJoinColumns.name}', referencedColumnName: '${getNewColumnName(mtm.name, mtm.joinColumns.referencedColumnName)}'}],`;
                     codeProps += `\n  })`;
                     codeProps += `\n  ${mtm.colName}: ${mtm.colType}[];`;
                     codeProps += `\n`;
@@ -449,7 +446,7 @@ class MsSqlModelGenerator {
 
                 // write to file
                 const fileName = table.name + '.ts';
-                fs.writeFileSync(path.join(dir, fileName), code, 'utf8');
+                await fs.writeFileSync(path.join(dir, fileName), code, 'utf8');
             }
         }
     }
