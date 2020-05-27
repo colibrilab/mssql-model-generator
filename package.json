@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "graceful-fs-extra": "^2.0.0",
+    "lodash": "^4.17.15",
+    "mkdirp": "^1.0.4",
+    "mssql": "^5.1.1",
+    "mypluralize": "^1.0.3",
+    "path": "^0.12.7",
+    "tedious": "^6.4.0",
+    "typeorm": "^0.2.25"
+  },
+  "description": "Generation of the MSSQL base model, creation of entities of the TypeORM (nodejs).",
+  "license": "ISC",
+  "main": "index.js",
+  "name": "@dmcl/mssql-model-generator",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "version": "1.0.0"
+}
