@@ -178,9 +178,10 @@ class MsSqlModelGenerator {
         }
 
         function getNewColumnName(tableName, columnName) {
-            return config[tableName] && config[tableName].columns && config[tableName].columns[columnName]
+            const lowercase = config[tableName] && config[tableName]['lowercase'] ? config[tableName]['lowercase'] : false;
+            return config[tableName] && config[tableName]['columns'] && config[tableName]['columns'][columnName]
                 ? config[tableName].columns[columnName]
-                : columnName;
+                : (lowercase ? columnName.substr(0, 1).toLowerCase() + columnName.substr(1) : columnName);
         }
 
         function getTable(tableName) {
@@ -375,18 +376,18 @@ class MsSqlModelGenerator {
                     // PrimaryGeneratedColumn
                     if (column.primary && column.identity) {
                         codeProps += `\n  @PrimaryGeneratedColumn(${columnDefinition(column)})`;
-                        codeProps += `\n  ${column.name}: ${columnType(column)};\n`;
+                        codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                         importOrmClasses.PrimaryGeneratedColumn = true;
-                    // PrimaryColumn
+                        // PrimaryColumn
                     } else if (column.primary) {
                         codeProps += `\n  @PrimaryColumn(${columnDefinition(column)})`;
-                        codeProps += `\n  ${column.name}: ${columnType(column)};\n`;
+                        codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                         importOrmClasses.PrimaryColumn = true;
                     } else {
                         // Column
                         if (!column.manyToOne) {
                             codeProps += `\n  @Column(${columnDefinition(column)})`;
-                            codeProps += `\n  ${getNewColumnName(table.name, column.name)}: ${columnType(column)};\n`;
+                            codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                             importOrmClasses.Column = true;
                         } else {
                             // ManyToOne

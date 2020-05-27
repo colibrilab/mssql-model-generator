@@ -140,7 +140,7 @@
             }
         ...
 
-    You can change the names of the fields:
+    You can change the names of the columns:
 
         ...
             const config = {
@@ -172,6 +172,19 @@
             }
         ...
 
+    Suppose there is a table in which the column names begin with capital letters
+    and you need to convert the names so that they begin with a lowercase letter.
+    You can use the [columns] option described above. But if this conversion needs
+    to be performed for all columns of the table, then it is more convenient to use
+    the option [lowercase].
+
+        ...
+            const config = {
+                tUsers: {
+                    lowercase: true,
+                },
+            };
+        ...
     
     Field names in ManyToOne and OneToMany relationships will be
     generated automatically, but sometimes you need to change them:
