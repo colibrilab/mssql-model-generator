@@ -23,6 +23,7 @@ class MsSqlModelGenerator {
                 password: password,
                 synchronize: false,
                 logging: false,
+                enableArithAbort: true,
             };
             con = typeorm.getConnectionManager().create(connectionOptions);
             manager = (await con.connect()).manager;
@@ -190,7 +191,7 @@ class MsSqlModelGenerator {
 
         function getColumn(tableName, columnName) {
             const table = getTable(tableName);
-            return _.find(table.columns, o => o.name === columnName)
+            return _.find(table.columns, o => o.name.toLowerCase() === columnName.toLowerCase())
         }
 
         function getFreeColumnName(tableName, columnName) {
@@ -278,11 +279,11 @@ class MsSqlModelGenerator {
 
                 // delete relationship oneToMany
                 const ref_c0 = getColumn(c0.manyToOne.table, c0.manyToOne.column);
-                const ref_i0 = _.findIndex(ref_c0.oneToMany, o => o.table === table.name && o.column === mtm[0][0]);
+                const ref_i0 = _.findIndex(ref_c0.oneToMany, o => o.table === table.name && o.column.toLowerCase() === mtm[0][0].toLowerCase());
                 ref_c0.oneToMany.splice(ref_i0, 1);
 
                 const ref_c1 = getColumn(c1.manyToOne.table, c1.manyToOne.column);
-                const ref_i1 = _.findIndex(ref_c1.oneToMany, o => o.table === table.name && o.column === mtm[1][0]);
+                const ref_i1 = _.findIndex(ref_c1.oneToMany, o => o.table === table.name && o.column.toLowerCase() === mtm[1][0].toLowerCase());
                 ref_c1.oneToMany.splice(ref_i1, 1);
 
                 // delete relationship manyToOne
@@ -418,7 +419,7 @@ class MsSqlModelGenerator {
                     codeProps += `\n    joinColumns: [{name: '${mtm.joinColumns.name}', referencedColumnName: '${getNewColumnName(mtm.name, mtm.joinColumns.referencedColumnName)}'}],`;
                     codeProps += `\n    inverseJoinColumns: [{name: '${mtm.inverseJoinColumns.name}', referencedColumnName: '${getNewColumnName(mtm.name, mtm.joinColumns.referencedColumnName)}'}],`;
                     codeProps += `\n  })`;
-                    codeProps += `\n  ${mtm.colName}: ${mtm.colType}[];`;
+                    codeProps += `\n  ${pluralise.getPlural(mtm.colName)}: ${mtm.colType}[];`;
                     codeProps += `\n`;
                     importOrmClasses.ManyToMany = true;
                     importOrmClasses.JoinTable = true;

@@ -1,7 +1,7 @@
 ## Module functions
 
-1. Getting the MSSQL database model ([getModel]);
-2. Generation of TypeOrm model files ([createTypeOrmEntities]);
+1. Getting the MSSQL database model (getModel);
+2. Generation of TypeOrm model files (createTypeOrmEntities);
 
 
 ## Examples of using
@@ -165,7 +165,7 @@ export class User {
     RoleUsers: RoleUser[];
 
     @Column('nvarchar', {length: 100})
-    ExtName: string;
+    ExtName: string; // <---
 }
 ```
 
@@ -185,7 +185,7 @@ const config = {
 ```    
 
 
-Column names in [ManyToOne] and [OneToMany] relationships will be
+Column names in ManyToOne and OneToMany relationships will be
 generated automatically, but sometimes you need to change them:
 
 ```javascript
@@ -259,7 +259,7 @@ export class RoleUser {
 ```
 
     
-If you want to make a bunch of [ManyToMany], then config should be modified as follows:
+If you want to make a bunch of ManyToMany, then config should be modified as follows:
 ```javascript
 const config = {
     tUsers: {

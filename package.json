@@ -16,5 +16,11 @@
   "scripts": {
     "test": "node test.js"
   },
-  "version": "1.0.3"
+  "keywords": [
+    "typeorm",
+    "mssql",
+    "generator",
+    "model"
+  ],
+  "version": "1.0.4"
 }
