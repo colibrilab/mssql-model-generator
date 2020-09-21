@@ -166,7 +166,7 @@ class MsSqlModelGenerator {
         return model;
     }
 
-    async createTypeOrmEntities({dir, model, config}) {
+    async createTypeOrmEntities({dir, model, config, swagger = false}) {
 
         const extModel = _.clone(model);
         const extConfig = {};
@@ -342,9 +342,8 @@ class MsSqlModelGenerator {
 
                 // find out which classes need to be imported
                 const importEntities = {};
-                const importOrmClasses = {
-                    Entity: true,
-                };
+                const importOrmClasses = { Entity: true };
+                const importSwaggerClasses = {};
                 for (const column of table.columns) {
 
                     if (column.manyToOne && names[column.manyToOne.table]) {
@@ -371,19 +370,50 @@ class MsSqlModelGenerator {
 
                 for (const column of table.columns) {
 
+                    const pushSwaggerApi = function(column, type = null) {
+
+                        if (swagger) {
+                            if (column.nullable) {
+                                if (type) {
+                                    codeProps += `\n  @ApiModelPropertyOptional({type: () => ${type}})`;
+                                    importSwaggerClasses.ApiModelPropertyOptional = true;
+                                }
+                                else if (column.description) {
+                                    const description = column.description.replace(new RegExp('\'', 'g'), '"');
+                                    codeProps += `\n  @ApiModelPropertyOptional({description: '${description}'})`;
+                                    importSwaggerClasses.ApiModelPropertyOptional = true;
+                                }
+                            }
+                            else {
+                                if (type) {
+                                    codeProps += `\n  @ApiModelProperty({type: () => ${type}})`;
+                                    importSwaggerClasses.ApiModelProperty = true;
+                                }
+                                else if (column.description) {
+                                    const description = column.description.replace(new RegExp('\'', 'g'), '"');
+                                    codeProps += `\n  @ApiModelProperty({description: '${description}'})`;
+                                    importSwaggerClasses.ApiModelProperty = true;
+                                }
+                            }
+                        }
+                    }
+
                     // PrimaryGeneratedColumn
                     if (column.primary && column.identity) {
+                        pushSwaggerApi(column);
                         codeProps += `\n  @PrimaryGeneratedColumn(${columnDefinition(column)})`;
                         codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                         importOrmClasses.PrimaryGeneratedColumn = true;
                         // PrimaryColumn
                     } else if (column.primary) {
+                        pushSwaggerApi(column);
                         codeProps += `\n  @PrimaryColumn(${columnDefinition(column)})`;
                         codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                         importOrmClasses.PrimaryColumn = true;
                     } else {
                         // Column
                         if (!column.manyToOne) {
+                            pushSwaggerApi(column);
                             codeProps += `\n  @Column(${columnDefinition(column)})`;
                             codeProps += `\n  ${getNewColumnName(table.entity, column.name)}: ${columnType(column)};\n`;
                             importOrmClasses.Column = true;
@@ -391,6 +421,7 @@ class MsSqlModelGenerator {
                             // ManyToOne
                             if (names[column.manyToOne.table]) {
                                 let mto = column.manyToOne;
+                                pushSwaggerApi(column, mto.table);
                                 codeProps += `\n  @ManyToOne(type => ${mto.table}, ${mto.table} => ${mto.table}.${mto.ref_name})`;
                                 codeProps += `\n  @JoinColumn({name: '${getNewColumnName(table.entity, column.name)}'})`;
                                 codeProps += `\n  ${mto.name}: ${mto.table};`;
@@ -404,6 +435,7 @@ class MsSqlModelGenerator {
                     // OneToMany
                     for (const otm of column.oneToMany) {
                         if (names[otm.table]) {
+                            // pushSwaggerApi(column, otm.table);
                             codeProps += `\n  @OneToMany(type => ${otm.table}, ${otm.table} => ${otm.table}.${otm.ref_name})`;
                             codeProps += `\n  ${otm.name}: ${otm.table}[];`;
                             codeProps += `\n`;
@@ -427,11 +459,24 @@ class MsSqlModelGenerator {
 
                 // import section
                 let code = '';
+
+                // Import TypeORM
                 code += `import {\n`;
                 for (const m in importOrmClasses) {
                     code += `  ${m},\n`;
                 }
                 code += `} from 'typeorm';\n`;
+
+                // Import Swagger Api
+                if (!_.isEqual({}, importSwaggerClasses)) {
+                    code += `import {\n`;
+                    for (const m in importSwaggerClasses) {
+                        code += `  ${m},\n`;
+                    }
+                    code += `} from '@nestjs/swagger/dist/decorators/api-model-property.decorator';\n`;
+                }
+
+                // Import Entities
                 for (const entity in importEntities) {
                     code += `import {${entity}} from './${entity}';\n`;
                 }

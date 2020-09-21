@@ -42,6 +42,7 @@ const run = async () => {
         dir: 'entity',
         model: model,
         config: config,
+        swagger: false, // optional
     });
 };
 
